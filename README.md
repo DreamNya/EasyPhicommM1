@@ -44,11 +44,25 @@ _服务器无论是本地或远程，只要路由器能连上即可_
 
 ### 2.3 Docker 启动容器
 
+以下方案二选一
+
+#### netcat
 ```bash
 docker run -d -p 9000:9000 --name=m1-server --restart always subfuzion/netcat -vl 9000
 ```
-
 参考 [群晖 NAS 解决悟空 M1 的 WiFi 图标红叉/闪烁](https://www.bilibili.com/opus/984763897121603592)
+
+#### socat
+```bash
+docker run -d \
+  --name=m1-server \
+  --restart always \
+  -p 9000:9000 \
+  --log-opt max-size=10m \
+  --log-opt max-file=3 \
+  alpine sh -c "apk add --no-cache socat && socat -u TCP-LISTEN:9000,reuseaddr,fork,keepalive,tcp-keepidle=10,tcp-keepintvl=5,tcp-keepcnt=3 OPEN:/dev/null"
+```
+由Gemini优化，解决了netcat方案可能遇到网络波动导致设备无法正常重连的情况
 
 ### 2.4 原理
 
@@ -101,6 +115,6 @@ docker start m1-server
 
 # 完结撒花
 
-如需脚本控制可额外参考
-[斐讯 M1 空气检测器独立控制方法](https://iytc.net/wordpress/?p=4150)
+如需脚本控制可额外参考  
+[斐讯 M1 空气检测器独立控制方法](https://iytc.net/wordpress/?p=4150)  
 [Phicomm 悟空 M1 服务器,数据可写入 MYSQL,前端使用 Flask 框架](https://github.com/fenggenet/PhicommM1_Server)
